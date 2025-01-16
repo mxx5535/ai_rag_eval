@@ -36,75 +36,75 @@ eval_data = eval_data.rename(columns={"index":"type"})
 eval_data_sample =eval_data.sample(n=50, random_state=42)
 #
 # ##
-# questions = []
-# ground_truths = []
-# answers = []
-# contexts = []
-#
-# for index,row in eval_data_sample.iterrows():
-#     print('now:',index)
-#     i = row['rewrite']
-#     results = db_search(collection,i)
-#     Q_list = results['documents'][0]
-#     A_list = results['metadatas'][0]
-#     content = []
-#     for q,a in zip(Q_list,A_list):
-#         content.append(q+'\t'+a['answer'])
-#
-#     template = """You are an assistant for question-answering tasks.
-#     Use the following pieces of retrieved context to answer the question.
-#     If you don't know the answer, just say that you don't know.
-#
-#     Question: {question}
-#
-#     Context: {context}
-#
-#     Answer:
-#     """
-#     prompt = template.format(question=i,context=contexts)
-#     try:
-#         eval_result = model.invoke(prompt).content
-#     except:
-#         continue
-#     answers.append(eval_result)
-#     contexts.append(content)
-#     questions.append(row['rewrite'])
-#     ground_truths.append([row['answer']])
-#
-# # 构建数据
-# data = {
-#     "question": questions,
-#     "answer": answers,
-#     "contexts": contexts,
-#     "ground_truths": ground_truths
-# }
-# dataset = Dataset.from_dict(data)
-# print(dataset)
-#
-# with open('dataset.pkl', 'wb') as file:
-#     pickle.dump(dataset, file)
-#
-# with open('dataset.pkl', 'rb') as file:
-#     dataset = pickle.load(file)
-#
-#
-# from ragas import evaluate
-# from ragas.metrics import (
-#     faithfulness,
-#     answer_relevancy
-# )
-# em_model = HuggingFaceBgeEmbeddings(model_name='/root/autodl-tmp/model/bge',model_kwargs ={'device':0},encode_kwargs = {'normalize_embeddings':True} )
-# eval_result = evaluate(
-#     dataset = dataset,
-#     llm=model,
-#     embeddings=em_model,
-#     metrics=[
-#         faithfulness,
-#         answer_relevancy,
-#     ],
-# )
-# print(eval_result)
-# eval_result.to_pandas().to_csv('./eval_result.csv')
+questions = []
+ground_truths = []
+answers = []
+contexts = []
+
+for index,row in eval_data_sample.iterrows():
+    print('now:',index)
+    i = row['rewrite']
+    results = db_search(collection,i)
+    Q_list = results['documents'][0]
+    A_list = results['metadatas'][0]
+    content = []
+    for q,a in zip(Q_list,A_list):
+        content.append(q+'\t'+a['answer'])
+
+    template = """You are an assistant for question-answering tasks.
+    Use the following pieces of retrieved context to answer the question.
+    If you don't know the answer, just say that you don't know.
+
+    Question: {question}
+
+    Context: {context}
+
+    Answer:
+    """
+    prompt = template.format(question=i,context=contexts)
+    try:
+        eval_result = model.invoke(prompt).content
+    except:
+        continue
+    answers.append(eval_result)
+    contexts.append(content)
+    questions.append(row['rewrite'])
+    ground_truths.append([row['answer']])
+
+# 构建数据
+data = {
+    "question": questions,
+    "answer": answers,
+    "contexts": contexts,
+    "ground_truths": ground_truths
+}
+dataset = Dataset.from_dict(data)
+print(dataset)
+
+with open('dataset.pkl', 'wb') as file:
+    pickle.dump(dataset, file)
+
+with open('dataset.pkl', 'rb') as file:
+    dataset = pickle.load(file)
+
+
+from ragas import evaluate
+from ragas.metrics import (
+    faithfulness,
+    answer_relevancy
+)
+em_model = HuggingFaceBgeEmbeddings(model_name='/root/autodl-tmp/model/bge',model_kwargs ={'device':0},encode_kwargs = {'normalize_embeddings':True} )
+eval_result = evaluate(
+    dataset = dataset,
+    llm=model,
+    embeddings=em_model,
+    metrics=[
+        faithfulness,
+        answer_relevancy,
+    ],
+)
+print(eval_result)
+eval_result.to_pandas().to_csv('./eval_result.csv')
 
 
 #-------检索系统----hit_rate- mrr----
